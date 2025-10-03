@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router';
+import { AuthContext } from '../contexts/AuthContext.jsx';
 
 export default function Login() {
     const [message, setMessage] = useState('');
@@ -7,6 +9,8 @@ export default function Login() {
         email: '',
         password: ''
     });
+    const { login } = useContext(AuthContext);
+    const navigate = useNavigate();
 
     const handleChange = (e) => {
         setFormData({
@@ -20,7 +24,11 @@ export default function Login() {
         
         await axios.post("http://localhost:8000/api/auth/login", formData)
         .then(function (response) {
-            console.log(response)
+            if (response.data && response.data.access_token) {
+                login(response.data.access_token);
+                console.log('Login successful, navigating to /home');
+                navigate('/home');
+            }
             setFormData({ email: '', password: '' });
             setMessage('');
         }).catch(function (error) {
