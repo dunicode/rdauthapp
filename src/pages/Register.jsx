@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router';
 export default function Register() {
     const navigate = useNavigate();
     const [message, setMessage] = useState('');
+    const [loading, setLoading] = useState(false); // Estado de carga
     const [formData, setFormData] = useState({
         name: '',
         email: '',
@@ -21,19 +22,26 @@ export default function Register() {
   
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true); // Iniciar carga
         
-        await axios.post("http://localhost:8000/api/auth/register", formData)
-        .then(function (response) {
-            console.log(response)
+        try {
+            const response = await axios.post("http://localhost:8000/api/auth/register", formData);
+            console.log(response);
             setFormData({ name: '', email: '', password: '', password_confirm: '' });
             setMessage('');
-            alert("Registro exitoso!")
+            alert("Registro exitoso!");
             navigate('/login');
-        }).catch(function (error) {
+        } catch (error) {
             console.log(JSON.parse(error.request.response).message);
-            setFormData({ name: formData.name, email: formData.email, password: '', password_confirm: '' });
+            setFormData(prev => ({ 
+                ...prev, 
+                password: '', 
+                password_confirm: '' 
+            }));
             setMessage(JSON.parse(error.request.response).message);
-        });  
+        } finally {
+            setLoading(false); // Finalizar carga (éxito o error)
+        }
     };
   
     return (
@@ -51,6 +59,7 @@ export default function Register() {
                         value={formData.name}
                         onChange={handleChange}
                         required
+                        disabled={loading} // Opcional: deshabilitar inputs
                     />
                 </div>
 
@@ -63,6 +72,7 @@ export default function Register() {
                         value={formData.email}
                         onChange={handleChange}
                         required
+                        disabled={loading} // Opcional: deshabilitar inputs
                     />
                 </div>
                 
@@ -75,6 +85,7 @@ export default function Register() {
                         value={formData.password}
                         onChange={handleChange}
                         required
+                        disabled={loading} // Opcional: deshabilitar inputs
                     />
                 </div>
 
@@ -87,12 +98,19 @@ export default function Register() {
                         value={formData.password_confirm}
                         onChange={handleChange}
                         required
+                        disabled={loading} // Opcional: deshabilitar inputs
                     />
                 </div>
 
                 <div className="form-group form-error">{message}</div>
                 
-                <button type="submit" className="submit-btn">Register</button>
+                <button 
+                    type="submit" 
+                    className="submit-btn"
+                    disabled={loading} // Deshabilitar botón durante carga
+                >
+                    {loading ? 'Registrando...' : 'Register'} {/* Texto dinámico */}
+                </button>
             </form>
         </div>
     );
